@@ -31,17 +31,8 @@
 #define act_MAX 1
 #define act_MAX1 2
 
-//int m, z, c, t, p, zzp;                         //m 마동석, z 좀비 c 시민, t 기차의 길이, p 시민 이동 확률, zzp 좀비 이동 확률
-//int cp, zp, mp;                                 //cp 시민 위치, zp 좀비 위치, mp 마동석 위치
-//int pp, zzpp;                                   //pp 100-p, zzpp 100-zzp
-//int count = 0;
-//int stm;
-//int agg;
-//int cagg;                                       //시민 어그로
-//int act;
-
 int ts(int t) {
-	for (int i = 1; i <= t; i++) {                 // 열차 초기 상태 출력 1-1
+	for (int i = 1; i <= t; i++) {
 		printf("*");
 	}
 	printf("\n");
@@ -55,9 +46,9 @@ int chp(int t, int cp, int zp, int mp) {
 		if (i == cp) printf("c");
 
 		else if (i == zp) printf("z");
-		
+
 		else if (i == mp) printf("m");
-		
+
 		else printf(" ");
 	}
 	printf("*\n");
@@ -66,11 +57,11 @@ int chp(int t, int cp, int zp, int mp) {
 }
 
 int tp(int t, int cp, int zp, int mp) {
-	
+
 	ts(t);
-	
+
 	chp(t, cp, zp, mp);
-	
+
 	ts(t);
 
 	printf("\n\n\n");
@@ -78,63 +69,116 @@ int tp(int t, int cp, int zp, int mp) {
 	return 0;
 }
 
-int tpm(int t, int p, int cp, int zp, int mp, int stm) {
-	int count = 0; int cagg = 1; int actMIN = 0; int actMAX = 1; int agg = 1; int actMAX1 = 2;
-    while (1) {
-        ++count; 
-        int pm = rand() % 100 + 1;
-		if (count % 2 == 1) {
-			if (cagg >= agg) {
-				--zp;
-			}
-			else if (cagg < agg) {
-				++zp;
-			}
-		}
-        int pp = rand() % 100 + 1;                  // 시민 확률 난수 생성
-        printf("%d\n", pp);
-        int old_cagg = cagg;
-        if (pp > p) {
-            --cp;                           // 시민 이동 조건 만족시 시민 위치 -1 1-4
-            if (cagg < 5) ++cagg;
-        } else if (cagg > 0) --cagg;
-        tp(t, cp, zp, mp);
-        cmm(pp, p, cp, count, zp, cagg, agg, old_cagg);
-        int result2 = er(cp, zp, stm);
-        if (result2 != 0) break;
-        printf("%d\n", pm);
-        int result1 = mdsa(actMIN, actMAX, zp, mp, actMAX1);
-        tp(t, cp, zp, mp);
-        int old_agg = agg; int old_stm = stm;
-        if (result1 == 1) {
-            --mp;
-            if (agg < 5) agg = 5;
-        } else if (result1 == 0) {
-            if (stm < 5) ++stm;
-            if (agg > 0) --agg;
-        } else if (result1 == 2) {
-            stm = stm - 1;
-            agg = agg + 2;
-            if (agg > 5) agg = 5;
-        }
-        mdsp(mp, agg, stm, result1, old_agg, pp, p, old_stm);
-    }
-    return 0;
-}
-
-int za(int zp, int mp, int cp, int agg, int cagg, int stm) {
-	if (zp == mp - 1) {
-		stm -= 1;
+int cmm(int pp, int p, int cp, int count, int zp, int cagg, int agg, int old_cagg, int groggy_result, int mp, int stm, int old_zp) {
+	if (pp > p) {
+		printf("시민 : %d -> %d (어그로: %d -> %d)\n", cp + 1, cp, old_cagg, cagg);
 	}
+	else {
+		printf("시민 : %d에서 정지 (어그로: %d -> %d)\n", cp, old_cagg, cagg);
+	}
+	if (count % 2 == 1) {
+		if (groggy_result == 0) {
+			if (cagg >= agg) printf("좀비 : %d -> %d\n", old_zp, zp);
+			else if (cagg < agg && zp != mp - 1) printf("좀비 : %d -> %d\n", old_zp, zp);
+		}
+		else if (groggy_result == 1) {
+			printf("좀비 : %d에서 정지(마동석에게 잡혀 움직일 수 없습니다.)\n", zp);
+		}
+	}
+	else printf("좀비 : %d에서 정지(움직일 수 없습니다.)\n", zp);
+	printf("\n\n\n");
+	return 0;
 }
 
 int mdsa(int actMIN, int actMAX, int zp, int mp, int actMAX1) {
+	int move;
+	while (1) {
+		if (mp == zp + 1) {
+			printf("마동석 이동(0. 휴식, 1. 이동) >> ");
+			scanf_s("%d", &move);
+			if (move == 1) continue;
+			if (move < act_MIN || move > act_MAX) {
+				continue;
+			}
+		}
+		else {
+			printf("마동석 이동(0. 휴식, 1. 이동) >> ");
+			scanf_s("%d", &move);
+			if (move < act_MIN || move > act_MAX) {
+				continue;
+			}
+		}
+		return move;
+	}
+}
+
+int mdsp(int mp, int agg, int stm, int result1, int old_agg, int pm, int p, int old_stm) {
+	if (result1 == 1) {
+		printf("마동석이 움직였습니다. 마동석 %d -> %d (어그로 %d -> %d, 체력: %d -> %d)\n", mp + 1, mp, old_agg, agg, old_stm, stm);
+	}
+	else if (result1 == 0) {
+		printf("마동석이 휴식했습니다. %d에서 휴식 (어그로 %d -> %d, 체력: %d -> %d)\n", mp, old_agg, agg, old_stm, stm);
+	}
+	printf("\n\n\n");
+	return 0;
+}
+
+int za(int zp, int mp, int stm, int agg, int cagg) {
+	if (zp == mp - 1 && agg > cagg) {
+		--stm;
+	}
+	return stm;
+}
+
+int momp(int cp) {
+	if (cp == 1) {
+		printf("SUCCESS!\n시민(들)이 다음 칸으로 탈출했습니다.\n");
+	}
+	else printf("시민은 아무것도 하지 않았습니다\n");
+	return 0;
+}
+
+int momp2(int cp) {
+	if (cp == 1) return 1;
+	return 0;
+}
+
+int momp3(int zp, int cp, int mp, int agg, int cagg, int stm) {
+	if (zp == cp + 1 && zp == mp - 1) {
+		if (agg > cagg) {
+			if (stm > 0) printf("좀비가 마동석을 공격했습니다. (어그로 %d vs %d, 마동석 체력 %d -> %d)\n", cagg, agg, stm + 1, stm);
+			else printf("GAME OVER!\n마동석이 좀비에게 공격당해 사망했습니다.\n");
+		}
+		else printf("GAME OVER!\n시민(들)이 좀비에게 공격당해 사망했습니다.\n");
+	}
+	else if (zp == cp + 1) printf("GAME OVER!\n시민(들)이 좀비에게 공격당해 사망했습니다.\n");
+	else if (zp == mp - 1) {
+		if (stm > 0) printf("좀비가 마동석을 공격했습니다. (어그로 %d vs %d, 마동석 체력 %d -> %d)\n", cagg, agg, stm + 1, stm);
+		else printf("GAME OVER!\n마동석이 좀비에게 공격당해 사망했습니다.\n");
+	}
+	else printf("좀비는 아무도 공격하지 않았습니다.\n");
+	return 0;
+}
+
+int momp4(int zp, int cp, int mp, int agg, int cagg, int stm) {
+	if (zp == cp + 1 && zp == mp - 1) {
+		if (agg > cagg) {
+			if (stm == 0) return 1;
+		}
+	}
+	else if (zp == cp + 1) return 1;
+	else if (zp == mp - 1) {
+		if (stm == 0) return 1;
+	}
+	return 0;
+}
+
+int mdsmomp(int mp, int zp) {
 	int act;
 	while (1) {
 		if (mp == zp + 1) {
 			printf("마동석의 행동(0. 휴식, 1. 도발, 2. 붙잡기) >> ");
 			scanf_s("%d", &act);
-			if (act == 1) continue;
 			if (act < act_MIN || act > act_MAX1) {
 				continue;
 			}
@@ -146,70 +190,56 @@ int mdsa(int actMIN, int actMAX, int zp, int mp, int actMAX1) {
 				continue;
 			}
 		}
+		printf("\n\n");
 		return act;
 	}
 }
 
-int er(int cp, int zp, int stm) {
-	if (cp == 1) {
-		printf("SUCCESS!\n시민(들)이 다음 칸으로 탈출했습니다.\n");
-		
-		return 1;
+int mdsap(int mdsmomp_result, int old_agg1, int agg, int old_stm1, int stm, int pm, int p) {
+	if (mdsmomp_result == 1) {
+		printf("마동석이 도발했습니다.(어그로 %d -> %d, 체력: %d -> %d)\n", old_agg1, agg, old_stm1, stm);
 	}
-	if (zp == cp + 1) {
-		printf("GAME OVER!\n시민(들)이 좀비에게 공격당해 사망했습니다.\n");
-		
-		return 1;
+	else if (mdsmomp_result == 0) {
+		printf("마동석이 휴식했습니다.(어그로 %d -> %d, 체력: %d -> %d)\n", old_agg1, agg, old_stm1, stm);
 	}
-
-	if (stm == 0) {
-		printf("GAME OVER!\n마동석의 체력이 0이 되었습니다.\n");
-
-		return 1;
-	}
-	 
-	return 0;
-}
-
-int cmm(int pp, int p, int cp, int count, int zp, int cagg, int agg, int old_cagg) {
-	if (pp > p) {
-		printf("시민 : %d -> %d (어그로: %d -> %d)\n", cp + 1, cp, old_cagg, cagg);
-	}
-	else {
-		printf("시민 : %d에서 정지 (어그로: %d -> %d)\n", cp, old_cagg, cagg);
-	}
-	if (count % 2 == 1 && cagg >= agg) printf("좀비 : %d -> %d\n", zp + 1, zp);
-	else if (count % 2 == 1 && cagg < agg) printf("좀비 : %d -> %d\n", zp - 1, zp);
-	else {
-		printf("좀비 : %d에서 정지(움직일 수 없습니다.)\n", zp);
+	else if (mdsmomp_result == 2) {
+		if (pm > p)
+			if (stm == 0) printf("마동석이 좀비를 붙잡았습니다. 다음 턴 좀비는 움직일 수 없습니다.\n(어그로: %d -> %d, 체력: %d -> %d)\nGAME OVER!\n마동석이 좀비에게 공격당해 사망했습니다.\n", old_agg1, agg, old_stm1, stm);
+			else printf("마동석이 좀비를 붙잡았습니다. 다음 턴 좀비는 움직일 수 없습니다.\n(어그로: %d -> %d, 체력: %d -> %d)\n", old_agg1, agg, old_stm1, stm);
+		else if (pm <= p)
+			if (stm == 0) printf("마동석이 좀비를 붙잡지 못했습니다.\n(어그로: %d -> %d, 체력: %d -> %d)\nGAME OVER!\n마동석이 좀비에게 공격당해 사망했습니다.\n", old_agg1, agg, old_stm1, stm);
+			else printf("마동석이 좀비를 붙잡지 못했습니다.\n(어그로: %d -> %d, 체력: %d -> %d)\n", old_agg1, agg, old_stm1, stm);
 	}
 	printf("\n\n\n");
 	return 0;
 }
 
-int mdsp(int mp, int agg, int stm, int result1, int old_agg, int pm, int p, int old_stm) {
-	if (result1 == 1) {
-		printf("마동석이 움직였습니다.(어그로 %d -> %d, 체력: %d -> %d)\n", old_agg, agg, old_stm, stm);
+int tfgroggy(int mdsmomp_result, int p, int pm) {
+	if (mdsmomp_result == 2) {
+		if (pm > p) return 1;
+		else if (pm <= p) return 0;
 	}
-	else if (result1 == 0) {
-		printf("마동석이 휴식했습니다.(어그로 %d -> %d, 체력: %d -> %d)\n", old_agg, agg, old_stm, stm);
-	}
-	else if (result1 == 2) {
-		if (pm > p) printf("마동석이 좀비를 붙잡았습니다. 다음 턴 좀비는 움직일 수 없습니다.\n마동석: %d(어그로 %d -> %d, 체력: %d -> %d)\n", mp, old_agg, agg, old_stm, stm);
-		else if (pm <= p) printf("마동석이 좀비를 붙잡지 못했습니다.\n마동석: %d(어그로 %d -> %d, 체력: %d -> %d)\n", mp, old_agg, agg, old_stm, stm);
-	}
+	else return 0;
 	return 0;
 }
 
 int main(void) {
 	srand((unsigned int)time(NULL));
-	int t, p, zzp, cp, zp, mp, cagg, stm;
+	int t, p, zzp, cp, zp, mp, stm;
+	int count = 0;
+	int cagg = 1;
+	int actMIN = 0;
+	int actMAX = 1;
+	int agg = 1;
+	int actMAX1 = 2;
+	int groggy;
+	int groggy_result = 0;
 
 	printf("부산헹 시작");                                //인트로
 	Sleep(1000);
 	printf("\n\n\n");
 
-	while(1) {
+	while (1) {
 		printf("기차의 길이(15 ~ 50) >> ");
 		scanf_s("%d", &t);
 		if (t >= t_MIN && t <= t_MAX) {                   // 입력 오류시 다시 입력
@@ -236,14 +266,6 @@ int main(void) {
 		}
 	}
 
-    /*while (1) {
-		printf("좀비 이동 확률(10 ~ 90) >> ");
-		scanf_s("%d", &zzp);
-
-		if (zzp >= zzp_MIN && zzp <= zzp_MAX) {            // 입력 오류시 다시 입력
-			break;
-		}
-	}*/
 	printf("\n\n\n");
 
 	cp = t - 6;
@@ -253,8 +275,89 @@ int main(void) {
 	printf("열차 초기 상태입니다.\n");
 
 	tp(t, cp, zp, mp);
+	
+	while (1) {
+			++count;
+			int old_zp = zp;
+			if (count % 2 == 1) {
+				if (groggy_result == 0) {
+					if (cagg >= agg) {
+						--zp;
+					}
+					else if (cagg < agg) {
+						if (zp == mp - 1) {
+							if (stm > 0) zp = old_zp;
+						}
+						else ++zp;
+					}
+				}
+				else if (groggy_result == 1) {
+					zp = zp;
+				}
+			}
+			int pp = rand() % 100 + 1;                  // 시민 확률 난수 생성
+			int old_cagg = cagg;
+			if (pp > p) {
+				--cp;                           // 시민 이동 조건 만족시 시민 위치 -1 1-4
+				if (cagg < 5) ++cagg;
+			}
+			else if (cagg > 0) --cagg;
+			tp(t, cp, zp, mp);
+			cmm(pp, p, cp, count, zp, cagg, agg, old_cagg, groggy_result, mp, stm, old_zp);
 
-	tpm(t, p, cp, zp, mp, stm);
+			int result1 = mdsa(actMIN, actMAX, zp, mp, actMAX1);
+			int old_agg = agg; int old_stm = stm;
+			if (result1 == 1) {
+				--mp;
+				if (agg < 5) ++agg;
+			}
+			else if (result1 == 0) {
+				if (stm < 5) ++stm;
+				if (agg > 0) --agg;
+			}
+			tp(t, cp, zp, mp);
+			int pm = rand() % 100 + 1;
+			mdsp(mp, agg, stm, result1, old_agg, pp, p, old_stm);
+			int zaresult = za(zp, mp, stm, agg, cagg);
+			if (zp == cp + 1 && zp == mp - 1) {
+				if (agg > cagg) {
+					if (stm > 0) --stm;
+				}
+			}
+			else if (zp == mp - 1) {
+				if (stm > 0) --stm;
+			}
+			momp(cp);
+			int result2 = momp2(cp);
+			if (result2 != 0) break;
+			momp3(zp, cp, mp, agg, cagg, stm);
+			int result4 = momp4(zp, cp, mp, agg, cagg, stm);
+			if (result4 != 0) break;
+			int mdsmomp_result = mdsmomp(mp, zp);
+			int old_agg1 = agg; int old_stm1 = stm;
+			if (mdsmomp_result == 1) agg = 5;
+			else if (mdsmomp_result == 0) {
+				if (agg > 0) --agg;
+			}
+			else {
+				agg += 2;
+				if (agg > 5) agg = 5;
+			}
+			if (mdsmomp_result == 0) {
+				if (stm < 5) ++stm;
+			}
+			else if (mdsmomp_result == 1) {
+				stm = stm;
+			}
+			else {
+				if (stm > 0) stm = stm - 1;
+			}
+			mdsap(mdsmomp_result, old_agg1, agg, old_stm1, stm, pm, p);
+			int result3 = momp2(zp, cp, mp, agg, cagg, stm);
+			if (result3 != 0) break;
+			int newgroggy_result = tfgroggy(mdsmomp_result, p, pm);
+			groggy_result = newgroggy_result;
+		}
 
-	return 0;
-}
+		return 0;
+	}
